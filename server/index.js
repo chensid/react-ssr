@@ -24,8 +24,17 @@ app.get('*', (req, res) => {
       }
     }
   });
+  // 对promises数组添加了一个回调函数
+  const handlePromise = Promise.all(
+    promises.map((item, index) => {
+      return item.catch(err => {
+        console.log(`第${index + 1}个请求出错`);
+        return err;
+      });
+    })
+  );
   // 等待所有网络请求结束再渲染
-  Promise.all(promises)
+  handlePromise
     .then(() => {
       // 把react组件。解析成html
       const content = renderToString(
@@ -54,11 +63,11 @@ app.get('*', (req, res) => {
           </html>
       `);
     })
-    .catch(() => {
+    .catch(err => {
       res.send('出错了');
     });
 });
 
 app.listen(9093, () => {
-  console.log('9093监听完毕');
+  console.log('端口9093监听完毕');
 });
