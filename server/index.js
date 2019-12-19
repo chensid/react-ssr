@@ -2,7 +2,7 @@
 import React from "react";
 import { renderToString } from "react-dom/server";
 import express from "express";
-import { StaticRouter, matchPath, Route } from "react-router-dom";
+import { StaticRouter, matchPath, Route, Switch } from "react-router-dom";
 import { Provider } from "react-redux";
 import proxy from "http-proxy-middleware";
 import { getServerStore } from "../src/store/store";
@@ -36,7 +36,7 @@ app.get("*", (req, res) => {
             .then(resolve)
             .catch(resolve);
         });
-        promises.push(promise)
+        promises.push(promise);
         // promises.push(loadData(store));
       }
     }
@@ -44,17 +44,27 @@ app.get("*", (req, res) => {
   // 等待所有网络请求结束再渲染
   Promise.all(promises)
     .then(() => {
+      const context = {};
       // 把react组件。解析成html
       const content = renderToString(
         <Provider store={store}>
-          <StaticRouter location={req.url}>
+          <StaticRouter location={req.url} context={context}>
             <Header></Header>
-            {routes.map(route => (
-              <Route {...route}></Route>
-            ))}
+            <Switch>
+              {routes.map(route => (
+                <Route {...route}></Route>
+              ))}
+            </Switch>
           </StaticRouter>
         </Provider>
       );
+      if (context.statuscode) {
+        // 状态切换和页面控制
+        res.status(context.statuscode);
+      }
+      if (context.action == "REPLACE") {
+        res.redirect(301, context.url);
+      }
       res.send(`
           <html>
               <head>
