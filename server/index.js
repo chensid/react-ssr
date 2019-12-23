@@ -1,4 +1,6 @@
 // 这里的node代码，会用babel处理
+import path from "path";
+import fs from "fs";
 import React from "react";
 import { renderToString } from "react-dom/server";
 import express from "express";
@@ -16,7 +18,21 @@ app.use(express.static("public"));
 // 客户端来的api开头的请求
 app.use("api", proxy({ target: "http://localhost:9090", changeOrigin: true }));
 
+function csrRender(res) {
+  // 读取csr文件，返回
+  const filename = path.resolve(process.cwd(), "public/index.csr.html");
+  const html = fs.readFileSync(filename, "utf-8");
+  return res.send(html);
+}
+
 app.get("*", (req, res) => {
+  if (req.query._mode == "csr") {
+    console.log("url参数开启csr降级");
+    return csrRender(res);
+  }
+  // 配置开关开启csr
+  // 服务器负载过高开启csr
+
   // 获取根据路由渲染的组件，并且拿到loadData方法，获取数据
 
   // if(req.url.startsWith('/api/')) {
