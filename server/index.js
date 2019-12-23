@@ -60,7 +60,9 @@ app.get("*", (req, res) => {
   // 等待所有网络请求结束再渲染
   Promise.all(promises)
     .then(() => {
-      const context = {};
+      const context = {
+        css: []
+      };
       // 把react组件。解析成html
       const content = renderToString(
         <Provider store={store}>
@@ -81,12 +83,16 @@ app.get("*", (req, res) => {
       if (context.action == "REPLACE") {
         res.redirect(301, context.url);
       }
+      const css = context.css.join('\n');
       res.send(`
           <html>
               <head>
                   <meta charset="utf-8" />
                   <title>react ssr</title>
               </head>
+              <style>
+                  ${css}
+              </style>
               <body>
                   <div id="root">${content}</div>
                   <script>
