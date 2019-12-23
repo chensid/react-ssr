@@ -16,7 +16,7 @@ const app = express();
 app.use(express.static("public"));
 
 // 客户端来的api开头的请求
-app.use("api", proxy({ target: "http://localhost:9090", changeOrigin: true }));
+app.use("/api", proxy({ target: "http://localhost:9090", changeOrigin: true }));
 
 function csrRender(res) {
   // 读取csr文件，返回
