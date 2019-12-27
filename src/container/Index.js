@@ -27,9 +27,16 @@ function Index(props) {
     </div>
   );
 }
+
+// const NewIndex = connect(state => ({ list: state.index.list }), {
+//   getIndexList
+// })(withStyle(Index, styles));
+// NewIndex.loadData = store => {
+//   return store.dispatch(getIndexList());
+// };
 Index.loadData = store => {
   return store.dispatch(getIndexList());
 };
-export default connect(state => ({ list: state.index.list }), { getIndexList })(
-  withStyle(Index, styles)
-);
+export default connect(state => ({ list: state.index.list }), {
+  getIndexList
+})(withStyle(Index, styles));
