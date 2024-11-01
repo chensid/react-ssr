@@ -20,7 +20,7 @@ function Index(props) {
       <button onClick={() => setCount(count + 1)}>累加</button>
       <hr />
       <ul>
-        {props.list.map(item => {
+        {props.list.map((item) => {
           return <li key={item.id}>{item.name}</li>;
         })}
       </ul>
@@ -34,9 +34,9 @@ function Index(props) {
 // NewIndex.loadData = store => {
 //   return store.dispatch(getIndexList());
 // };
-Index.loadData = store => {
+Index.loadData = (store) => {
   return store.dispatch(getIndexList());
 };
-export default connect(state => ({ list: state.index.list }), {
-  getIndexList
+export default connect((state) => ({ list: state.index.list }), {
+  getIndexList,
 })(withStyle(Index, styles));

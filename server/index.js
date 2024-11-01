@@ -3,10 +3,10 @@ import path from "path";
 import fs from "fs";
 import React from "react";
 import { renderToString } from "react-dom/server";
-import express from "express";
+import * as express from "express";
 import { StaticRouter, matchPath, Route, Switch } from "react-router-dom";
 import { Provider } from "react-redux";
-import proxy from "http-proxy-middleware";
+import { createProxyMiddleware } from "http-proxy-middleware";
 import { getServerStore } from "../src/store/store";
 import routes from "../src/App";
 import Header from "../src/component/Header";
@@ -16,8 +16,13 @@ const store = getServerStore();
 const app = express();
 app.use(express.static("public"));
 
+const proxyMiddleware = createProxyMiddleware({
+  target: "http://localhost:9090/api",
+  changeOrigin: true,
+});
+
 // 客户端来的api开头的请求
-app.use("/api", proxy({ target: "http://localhost:9090", changeOrigin: true }));
+app.use("/api", proxyMiddleware);
 
 function csrRender(res) {
   // 读取csr文件，返回
@@ -42,16 +47,14 @@ app.get("*", (req, res) => {
 
   // 存储网络请求
   const promises = [];
-  routes.some(route => {
+  routes.some((route) => {
     const match = matchPath(req.path, route);
     if (match) {
       const { loadData } = route.component;
       if (loadData) {
         // 规避报错，可以追加日志
         const promise = new Promise((resolve, reject) => {
-          loadData(store)
-            .then(resolve)
-            .catch(resolve);
+          loadData(store).then(resolve).catch(resolve);
         });
         promises.push(promise);
         // promises.push(loadData(store));
@@ -62,7 +65,7 @@ app.get("*", (req, res) => {
   Promise.all(promises)
     .then(() => {
       const context = {
-        css: []
+        css: [],
       };
       // 把react组件。解析成html
       const content = renderToString(
@@ -70,7 +73,7 @@ app.get("*", (req, res) => {
           <StaticRouter location={req.url} context={context}>
             <Header></Header>
             <Switch>
-              {routes.map(route => (
+              {routes.map((route) => (
                 <Route {...route}></Route>
               ))}
             </Switch>
@@ -84,7 +87,7 @@ app.get("*", (req, res) => {
       if (context.action == "REPLACE") {
         res.redirect(301, context.url);
       }
-      const css = context.css.join('\n');
+      const css = context.css.join("\n");
       res.send(`
           <html>
               <head>
@@ -104,7 +107,7 @@ app.get("*", (req, res) => {
           </html>
       `);
     })
-    .catch(err => {
+    .catch((err) => {
       res.send("出错了");
     });
 });

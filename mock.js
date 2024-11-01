@@ -1,6 +1,6 @@
 // 单纯的模拟接口
 
-let express = require('express');
+const express = require('express');
 const app = express();
 
 app.get('/api/user/info', (req, res) => {
